@@ -3,6 +3,30 @@
 #
 # Origine da: Simple Bot to reply to Telegram messages
 """
+MIT License
+
+Copyright (c) 2016 dave4th
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=============================================================================
+
 This Bot uses the Updater class to handle the bot.
 First, a few handler functions are defined. Then, those functions are passed to
 the Dispatcher and registered at their respective places.
@@ -107,7 +131,7 @@ def image(bot, update, args):
             bot.sendMessage(update.message.chat_id, text='<b>Attenzione, questa operazione puo` richiedere diversi minuti !</b>', parse_mode=telegram.ParseMode.HTML)
             csvi = pandas.read_csv(args[0])
             # Tipo di chart "Line"
-            line_chart = pygal.Line()
+            line_chart = pygal.Line(x_label_rotation=30,x_labels_major_every=100, show_minor_x_labels=False)
             # Lista colonne, colonne contiene il nome delle colonne dal csv (la prima riga)
             # a noi servira` piu` per sapere quante ce ne sono, che il nome
             colonne=csvi.columns.tolist()
