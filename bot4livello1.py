@@ -76,8 +76,7 @@ logger = logging.getLogger(__name__)
 # update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
     update.message.reply_text('''
-Cosa fa` questo bot ?
-Ad oggi, 13 dicembre 2016:
+* Questo bot *
 Elenca i files ".csv" presenti nella 'root' "/var/www/" della centralina livello 1.
 Genera, se richiesto, l'immagine PNG, che viene inviata in chat.
 Visualizza i valori delle chiavi redis.
@@ -92,6 +91,15 @@ I comandi utili sono:
 /keys <filtro> - Visualizza le chiavi selezionate ed il loro contenuto
 /keysfilters - Esempi di filtro/selezione chiavi (utili per il copia/incolla)
 /daemons - Visualizzazione dei daemons (my debug)
+
+Fri 16 Dec 2016 09:03:46 AM CET
+E` ora possibile visualizzare il valore di una chiave digitando la rispettiva chiave dei valori senza nessun'altro comando, per esempio:
+\t\tI:Mobile:Mobile:Mobile:Temperatura:ST1:Valori
+Oppure, puoi selezionare di visualizzare:
+- Temperatura
+- Umidita
+- Pioggia
+Digitando le parole cosi` come scritte
     ''')
 
 
@@ -267,12 +275,51 @@ def echo(bot, update):
         update.message.reply_text('Ideatore del bot: http://github.com/dave4th')
     elif update.message.text == 'mirco':
         update.message.reply_text('Beta tester: http://github.com/bergam')
+    #elif update.message.text == 'credits':
+    #    update.message.reply_text('davide, mirco, raspibo')
     elif update.message.text == 'raspibo':
         update.message.reply_text('http://github.com/raspibo\nhttp://www.raspibo.org')
     elif update.message.text == 'bot':
         update.message.reply_text('http://github.com/raspibo/bot4livello1')
     elif (update.message.text == 'livello1') or (update.message.text == 'level1') or (update.message.text == 'centralina'):
         update.message.reply_text('http://www.raspibo.org/wiki/index.php/Centralina_livello_1')
+    #elif update.message.text.split(":")[0] == 'I':    # Per ora solo le "I" (input), ma domani ci saranno anche le "O" (output) ?
+    #    try:
+    #        if update.message.text.split(":")[6] == 'Valori':
+    #            # Apro il database Redis con l'istruzione della mia libreria
+    #            MyDB = flt.OpenDBFile(ConfigFile)
+    #            # Elimino "Valori" dalla srtringa con l'operazione [:-7] che toglie sette lettere dalla fine (anche il :)
+    #            Descrizione=flt.Decode(MyDB.hget(update.message.text[:-7],"Descrizione"))
+    #            # Prendo l'ultimo ":Valori" dalla chiave (nella chiave, e` un gruppo "sets")
+    #            # Il valore e` dopo la virgola 		.split(",")[1]
+    #            # perche` prima c'e` la data		.split(",")[0]
+    #            Data=flt.Decode(MyDB.lindex(update.message.text,-1)).split(",")[0]
+    #            Valore=flt.Decode(MyDB.lindex(update.message.text,-1)).split(",")[1]
+    #            update.message.reply_text(Descrizione+": "+Valore+" ["+Data+"]")
+    #    # except non e` ancora stato verificato
+    #    except (IndexError, ValueError):
+    #        update.message.reply_text('Qualcosa e` andato storto')
+    #        update.message.reply_text('La chiave specificata non contiene valori ?')
+    elif (update.message.text == 'Temperatura') or (update.message.text == 'Umidita') or (update.message.text == 'Pioggia') or (update.message.text.split(":")[0] == 'I'):
+        # Apro il database Redis con l'istruzione della mia libreria
+        MyDB = flt.OpenDBFile(ConfigFile)
+        for i in MyDB.keys('*'+update.message.text+'*'):
+            if flt.Decode(MyDB.type(flt.Decode(i))) == "list":
+                try:
+                    if flt.Decode(i).split(":")[6] == 'Valori':
+                        # Elimino "Valori" dalla srtringa con l'operazione [:-7] che toglie sette lettere dalla fine (anche il :)
+                        Descrizione=flt.Decode(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"))
+                        # Prendo l'ultimo ":Valori" dalla chiave (nella chiave, e` un gruppo "sets")
+                        # Il valore e` dopo la virgola 		.split(",")[1]
+                        # perche` prima c'e` la data		.split(",")[0]
+                        Data=flt.Decode(MyDB.lindex(flt.Decode(i),-1)).split(",")[0]
+                        Valore=flt.Decode(MyDB.lindex(flt.Decode(i),-1)).split(",")[1]
+                        update.message.reply_text(Descrizione+": "+Valore+" ["+Data+"]")
+                except (IndexError, ValueError):
+                    update.message.reply_text('Qualcosa e` andato storto')
+                    update.message.reply_text('La chiave specificata non contiene valori ?')
+            #else:
+            #    update.message.reply_text('Non ho trovato niente da visualizzare')
     else:
         update.message.reply_text(update.message.text)
         #update.message.reply_text('(e` attiva la funzione "echo" dei messaggi \'inutili\')')
