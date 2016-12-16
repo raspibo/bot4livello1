@@ -101,6 +101,14 @@ Oppure, puoi selezionare di visualizzare:
 - Pioggia
 Digitando le parole cosi` come scritte
     ''')
+    keyboard = [
+                 [telegram.KeyboardButton('/help')],
+                 [telegram.KeyboardButton('Temperatura')],
+                 [telegram.KeyboardButton('Umidita')],
+                 [telegram.KeyboardButton('Pioggia')],
+               ]
+    reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
 
 
 def help(bot, update):
@@ -113,6 +121,14 @@ def help(bot, update):
 /daemons : Daemons (debug)
 /testid : Visualizza ID CHAT (my debug)
 ''')
+    keyboard = [
+                 [telegram.KeyboardButton('/help')],
+                 [telegram.KeyboardButton('Temperatura')],
+                 [telegram.KeyboardButton('Umidita')],
+                 [telegram.KeyboardButton('Pioggia')],
+               ]
+    reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
 
 
 def listacsv(bot, update):
@@ -124,7 +140,7 @@ def listacsv(bot, update):
     # Uso solo quelli della "root"
     FileList = sorted(glob.glob(Dirs[0]+"*.csv"))
     bot.sendMessage(update.message.chat_id, text='<b>Elenco files:</b>', parse_mode=telegram.ParseMode.HTML)
-    keyboard = []    # preparo la tastiera, e` una lista python
+    keyboard = [telegram.KeyboardButton('/help')]    # preparo la tastiera, e` una lista python
     for i in range(len(FileList)):
         bot.sendMessage(update.message.chat_id, text='/image '+FileList[i])
         testo='/image '+FileList[i]
@@ -235,6 +251,7 @@ def keysfilters(bot, update):
     bot.sendMessage(update.message.chat_id, text='/keys *graph*')
     bot.sendMessage(update.message.chat_id, text='/keys *alarm*')
     keyboard = [
+                 [telegram.KeyboardButton('/help')],
                  [telegram.KeyboardButton('/keys *')],
                  [telegram.KeyboardButton('/keys *Temperatura*:Valori')],
                  [telegram.KeyboardButton('/keys *Umidita*:Valori')],
