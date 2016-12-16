@@ -140,7 +140,7 @@ def listacsv(bot, update):
     # Uso solo quelli della "root"
     FileList = sorted(glob.glob(Dirs[0]+"*.csv"))
     bot.sendMessage(update.message.chat_id, text='<b>Elenco files:</b>', parse_mode=telegram.ParseMode.HTML)
-    keyboard = [telegram.KeyboardButton('/help')]    # preparo la tastiera, e` una lista python
+    keyboard = [[telegram.KeyboardButton('/help')]]    # preparo la tastiera, e` una lista python
     for i in range(len(FileList)):
         bot.sendMessage(update.message.chat_id, text='/image '+FileList[i])
         testo='/image '+FileList[i]
