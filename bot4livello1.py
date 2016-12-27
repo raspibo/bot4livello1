@@ -325,12 +325,22 @@ def echo(bot, update):
                 try:
                     if flt.Decode(i).split(":")[6] == 'Valori':
                         # Elimino "Valori" dalla srtringa con l'operazione [:-7] che toglie sette lettere dalla fine (anche il :)
-                        Descrizione=flt.Decode(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"))
+                        """ Non riesco ad evitare l'errore quando la descrizione contiene "`", come per esempio: "Umidita`"
+                            Il programma funziona ugualmente, anche se compare l'errore.
+                        """
+                        #Descrizione=flt.Decode(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"))
+                        Descrizione=str(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"), 'utf-8')       # Funziona ugualmente come il decode !
                         # Prendo l'ultimo ":Valori" dalla chiave (nella chiave, e` un gruppo "sets")
                         # Il valore e` dopo la virgola 		.split(",")[1]
                         # perche` prima c'e` la data		.split(",")[0]
                         Data=flt.Decode(MyDB.lindex(flt.Decode(i),-1)).split(",")[0]
                         Valore=flt.Decode(MyDB.lindex(flt.Decode(i),-1)).split(",")[1]
+                        """ Usati per verifiche decodifica errore su parole con accento inverso (Umidita`)
+                        """
+                        #print(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"))
+                        #print(type(MyDB.hget(flt.Decode(i)[:-7],"Descrizione")))
+                        #print(Descrizione)
+                        #print(type(Descrizione))
                         update.message.reply_text(Descrizione+": "+Valore+" ["+Data+"]")
                 except (IndexError, ValueError):
                     update.message.reply_text('Qualcosa e` andato storto')
@@ -348,7 +358,7 @@ def error(bot, update, error):
 
 def main():
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("TOKEN")
+    updater = Updater("322697014:AAFGYf1nKStUpf6-J0-Nvxfo4NZwtFAyKRc")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
