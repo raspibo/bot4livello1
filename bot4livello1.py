@@ -280,6 +280,9 @@ def daemons(bot, update):
         testo=flt.Decode(subprocess.check_output(['/var/www/cgi-bin/setsgraph_init.d.sh','status',SetsRedis[i]]))
         # Genero una stringa solo per avere un'output decente, e perche` lo 'status', non riporta il parametro del demone
         bot.sendMessage(update.message.chat_id, text='<b>'+SetsRedis[i]+'</b>\n'+testo, parse_mode=telegram.ParseMode.HTML)
+        testo=flt.Decode(subprocess.check_output(['/var/www/cgi-bin/setsalarms_init.d.sh','status',SetsRedis[i]]))
+        # Genero una stringa solo per avere un'output decente, e perche` lo 'status', non riporta il parametro del demone
+        bot.sendMessage(update.message.chat_id, text='<b>'+SetsRedis[i]+'</b>\n'+testo, parse_mode=telegram.ParseMode.HTML)
 
 
 def testid(bot, update):

@@ -56,7 +56,9 @@ def OpenDB(Host,Port,Database,Password):
 
 # Faccio una funzione per la decodifica bytes -> str
 def Decode(TxT):
-    return TxT.decode('unicode_escape')
+    #return TxT.decode('unicode_escape')
+    return TxT.decode('utf-8')      # Uguale
+
 
 # Decodifica una lista
 def DecodeList(List):
