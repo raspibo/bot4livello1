@@ -331,8 +331,11 @@ def echo(bot, update):
                         """ Non riesco ad evitare l'errore quando la descrizione contiene "`", come per esempio: "Umidita`"
                             Il programma funziona ugualmente, anche se compare l'errore.
                         """
-                        #Descrizione=flt.Decode(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"))
-                        Descrizione=str(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"), 'utf-8')       # Funziona ugualmente come il decode !
+                        if MyDB.hexists(flt.Decode(i)[:-7],"Descrizione"):    # Se esiste ..
+                            #Descrizione=flt.Decode(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"))
+                            Descrizione=str(MyDB.hget(flt.Decode(i)[:-7],"Descrizione"), 'utf-8')       # Funziona ugualmente come il decode !
+                        else:
+                            Descrizione="Senza descrizione"
                         # Prendo l'ultimo ":Valori" dalla chiave (nella chiave, e` un gruppo "sets")
                         # Il valore e` dopo la virgola 		.split(",")[1]
                         # perche` prima c'e` la data		.split(",")[0]
