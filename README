@@ -1,3 +1,13 @@
 == Telegram Bot per Centralina livello 1 ==
 
 http://www.raspibo.org/wiki/index.php?title=Centralina_livello_1/telegram_bot
+
+
+=== Troubleshooting ===
+
+==== Chart render to png ====
+chart.render_to_png('/tmp/chart.png')  # Write the chart in the specified file
+
+In case of rendered image turning up black, installing lxml, tinycss and cssselect should fix the issue.
+
+apt install python3-lxml python3-tinycss python3-cssselect

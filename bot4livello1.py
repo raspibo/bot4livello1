@@ -74,7 +74,7 @@ logger = logging.getLogger(__name__)
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
-def start(bot, update):
+def start(update, context):
     update.message.reply_text('''
 * Questo bot *
 Elenca i files ".csv" presenti nella 'root' "/var/www/" della centralina livello 1.
@@ -108,12 +108,12 @@ Digitando le parole cosi` come scritte
                  [telegram.KeyboardButton('Pioggia')],
                ]
     reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
+    context.bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
 
 
-def help(bot, update):
-    bot.sendMessage(update.message.chat_id, text='<b>Help / Aiuto</b>', parse_mode=telegram.ParseMode.HTML)
-    bot.sendMessage(update.message.chat_id, text='''
+def help(update, context):
+    context.bot.sendMessage(update.message.chat_id, text='<b>Help / Aiuto</b>', parse_mode=telegram.ParseMode.HTML)
+    context.bot.sendMessage(update.message.chat_id, text='''
 /listacsv : Elenco dei files CSV
 /image <nomefile.csv> : Genera ed invia il grafico in formato PNG (Attenzione: puo` impiegare diversi minuti)
 /keys <keys-filter> : Visualizzazione delle chiavi redis
@@ -128,10 +128,10 @@ def help(bot, update):
                  [telegram.KeyboardButton('Pioggia')],
                ]
     reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
+    context.bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
 
 
-def listacsv(bot, update):
+def listacsv(update, context):
     Dirs = ["/var/www/", "/var/www/archive/"]
     # Cerco i CSV
     # Prima quelli della "archive", poi aggiungo in testa quella della www
@@ -139,21 +139,21 @@ def listacsv(bot, update):
     #FileList[0:0] = sorted(glob.glob(Dirs[0]+"*.csv"))
     # Uso solo quelli della "root"
     FileList = sorted(glob.glob(Dirs[0]+"*.csv"))
-    bot.sendMessage(update.message.chat_id, text='<b>Elenco files:</b>', parse_mode=telegram.ParseMode.HTML)
+    context.bot.sendMessage(update.message.chat_id, text='<b>Elenco files:</b>', parse_mode=telegram.ParseMode.HTML)
     keyboard = [[telegram.KeyboardButton('/help')]]    # preparo la tastiera, e` una lista python
     for i in range(len(FileList)):
-        bot.sendMessage(update.message.chat_id, text='/image '+FileList[i])
+        context.bot.sendMessage(update.message.chat_id, text='/image '+FileList[i])
         testo='/image '+FileList[i]
         keyboard.append([telegram.KeyboardButton(testo)])    # Ho messo le quadre perche` i testi sono lunghi ed e` meglio incolonnare i pulsanti
     reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
+    context.bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
 
 
-def image(bot, update, args):
+def image(update, context):
     try:
-        if os.path.exists(args[0]):
-            bot.sendMessage(update.message.chat_id, text='<b>Attenzione, questa operazione puo` richiedere diversi minuti !</b>', parse_mode=telegram.ParseMode.HTML)
-            csvi = pandas.read_csv(args[0])
+        if os.path.exists(context.args[0]):
+            context.bot.sendMessage(update.message.chat_id, text='<b>Attenzione, questa operazione puo` richiedere diversi minuti !</b>', parse_mode=telegram.ParseMode.HTML)
+            csvi = pandas.read_csv(context.args[0])
             # Tipo di chart "Line"
             line_chart = pygal.Line(x_label_rotation=30,x_labels_major_every=100, show_minor_x_labels=False)
             # Lista colonne, colonne contiene il nome delle colonne dal csv (la prima riga)
@@ -191,14 +191,14 @@ def image(bot, update, args):
             update.message.reply_text('Inizio rendering ..')
             # Render
             line_chart.render_to_png('image.png')
-            bot.sendPhoto(update.message.chat_id, photo=open('image.png', 'rb'))
+            context.bot.sendPhoto(update.message.chat_id, photo=open('image.png', 'rb'))
         else:
-            bot.sendMessage(update.message.chat_id, text='Devi specificare il nome di un file ".csv" esistente.')
+            context.bot.sendMessage(update.message.chat_id, text='Devi specificare il nome di un file ".csv" esistente.')
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /image <nomefile.csv>')
 
 
-def keys(bot, update, args):
+def keys(update, context):
     try:
         # Apro il database Redis con l'istruzione della mia libreria
         MyDB = flt.OpenDBFile(ConfigFile)
@@ -208,7 +208,7 @@ def keys(bot, update, args):
         RedisKeyHash=[]
         RedisKeyList=[]
         RedisKeySet=[]
-        for i in MyDB.keys(args[0]):
+        for i in MyDB.keys(context.args[0]):
             #print (flt.Decode(i))
             # Ho dovudo decodificare due volte per leggere la stringa del tipo di chiave e controllarne l'uguaglianza
             if flt.Decode(MyDB.type(flt.Decode(i))) == "hash":
@@ -218,22 +218,22 @@ def keys(bot, update, args):
                     dalla seconda riga i valori/contenuto della chiave
                 """
                 testo="<b>"+str(flt.Decode(i))+"\n</b>"+str(MyDB.type(flt.Decode(i)))+": "+str(MyDB.hgetall(flt.Decode(i)))
-                bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
+                context.bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
                 RedisKeyHash.append(flt.Decode(i))
             elif flt.Decode(MyDB.type(flt.Decode(i))) == "string":
                 #print (MyDB.type(flt.Decode(i)),": ",MyDB.get(flt.Decode(i)))
                 testo="<b>"+str(flt.Decode(i))+"\n</b>"+str(MyDB.type(flt.Decode(i)))+": "+str(MyDB.get(flt.Decode(i)))
-                bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
+                context.bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
                 RedisKeyString.append(flt.Decode(i))
             elif flt.Decode(MyDB.type(flt.Decode(i))) == "list":
                 #print (MyDB.type(flt.Decode(i)),": ",MyDB.llen(flt.Decode(i)),"valori, l'ultimo e`: ",MyDB.lindex(flt.Decode(i),"-1"))
                 testo="<b>"+str(flt.Decode(i))+"\n</b>"+str(MyDB.type(flt.Decode(i)))+": "+str(MyDB.llen(flt.Decode(i)))+"valori, l'ultimo e`: "+str(MyDB.lindex(flt.Decode(i),"-1"))
-                bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
+                context.bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
                 RedisKeyList.append(flt.Decode(i))
             elif flt.Decode(MyDB.type(flt.Decode(i))) == "set":
                 #print (MyDB.type(flt.Decode(i)),": ",MyDB.smembers(flt.Decode(i)))
                 testo="<b>"+str(flt.Decode(i))+"\n</b>"+str(MyDB.type(flt.Decode(i)))+": "+str(MyDB.smembers(flt.Decode(i)))
-                bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
+                context.bot.sendMessage(update.message.chat_id, text=testo, parse_mode=telegram.ParseMode.HTML)
                 RedisKeySet.append(flt.Decode(i))
             else:
                 print (MyDB.type(flt.Decode(i)),": ","Non ancora contemplata")
@@ -243,13 +243,13 @@ def keys(bot, update, args):
 
 
 
-def keysfilters(bot, update):
-    bot.sendMessage(update.message.chat_id, text='/keys * (tutte le chiavi)')
-    bot.sendMessage(update.message.chat_id, text='/keys *Temperatura*')
-    bot.sendMessage(update.message.chat_id, text='/keys *I:Casa:PianoUno:*')
-    bot.sendMessage(update.message.chat_id, text='/keys *Valori*')
-    bot.sendMessage(update.message.chat_id, text='/keys *graph*')
-    bot.sendMessage(update.message.chat_id, text='/keys *alarm*')
+def keysfilters(update, context):
+    context.bot.sendMessage(update.message.chat_id, text='/keys * (tutte le chiavi)')
+    context.bot.sendMessage(update.message.chat_id, text='/keys *Temperatura*')
+    context.bot.sendMessage(update.message.chat_id, text='/keys *I:Casa:PianoUno:*')
+    context.bot.sendMessage(update.message.chat_id, text='/keys *Valori*')
+    context.bot.sendMessage(update.message.chat_id, text='/keys *graph*')
+    context.bot.sendMessage(update.message.chat_id, text='/keys *alarm*')
     keyboard = [
                  [telegram.KeyboardButton('/help')],
                  [telegram.KeyboardButton('/keys *')],
@@ -259,12 +259,12 @@ def keysfilters(bot, update):
                  [telegram.KeyboardButton('/keys *Valori')]
                ]
     reply_markup = telegram.ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
+    context.bot.sendMessage(update.message.chat_id, text="I'll be back ..", reply_markup=reply_markup)
 
-def daemons(bot, update):
+def daemons(update, context):
     #print (flt.Decode(subprocess.check_output(['/var/www/cgi-bin/mqtt2redis_init.d.sh','status'])))
     testo=flt.Decode(subprocess.check_output(['/var/www/cgi-bin/mqtt2redis_init.d.sh','status']))
-    bot.sendMessage(update.message.chat_id, text=testo)
+    context.bot.sendMessage(update.message.chat_id, text=testo)
     # Gruppi Redis
     # Non riesco a filtrare con una normale 'regex', mi son stufato e allora prendo tutti
     # quelli che hanno "sets:*:Config" e poi eliminero` il finale ":Config"
@@ -279,18 +279,18 @@ def daemons(bot, update):
     for i in range (len(SetsRedis)):
         testo=flt.Decode(subprocess.check_output(['/var/www/cgi-bin/setsgraph_init.d.sh','status',SetsRedis[i]]))
         # Genero una stringa solo per avere un'output decente, e perche` lo 'status', non riporta il parametro del demone
-        bot.sendMessage(update.message.chat_id, text='<b>'+SetsRedis[i]+'</b>\n'+testo, parse_mode=telegram.ParseMode.HTML)
+        context.bot.sendMessage(update.message.chat_id, text='<b>'+SetsRedis[i]+'</b>\n'+testo, parse_mode=telegram.ParseMode.HTML)
         testo=flt.Decode(subprocess.check_output(['/var/www/cgi-bin/setsalarms_init.d.sh','status',SetsRedis[i]]))
         # Genero una stringa solo per avere un'output decente, e perche` lo 'status', non riporta il parametro del demone
-        bot.sendMessage(update.message.chat_id, text='<b>'+SetsRedis[i]+'</b>\n'+testo, parse_mode=telegram.ParseMode.HTML)
+        context.bot.sendMessage(update.message.chat_id, text='<b>'+SetsRedis[i]+'</b>\n'+testo, parse_mode=telegram.ParseMode.HTML)
 
 
-def testid(bot, update):
-    bot.sendMessage(update.message.chat_id, text='Chat ID: <b>'+str(update.message.chat_id)+'</b>', parse_mode=telegram.ParseMode.HTML)
+def testid(update, context):
+    context.bot.sendMessage(update.message.chat_id, text='Chat ID: <b>'+str(update.message.chat_id)+'</b>', parse_mode=telegram.ParseMode.HTML)
 
 
 # Ho lasciato la funzione echo, modificandola un po` ;)
-def echo(bot, update):
+def echo(update, context):
     if update.message.text == 'davide':
         update.message.reply_text('Ideatore del bot: http://github.com/dave4th')
     elif update.message.text == 'mirco':
@@ -358,14 +358,14 @@ def echo(bot, update):
         #update.message.reply_text('(e` attiva la funzione "echo" dei messaggi \'inutili\')')
 
 
-def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+def error(update, context):
+    logger.warning('Update "%s" caused error "%s"' % (update, context.error))
 
 
 def main():
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("322697014:AAFGYf1nKStUpf6-J0-Nvxfo4NZwtFAyKRc")
-
+    updater = Updater("322697014:AAFGYf1nKStUpf6-J0-Nvxfo4NZwtFAyKRc", use_context=True)
+    
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
